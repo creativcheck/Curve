@@ -11,9 +11,13 @@ public class PostProcessManager : MonoBehaviour
     Vignette vignette;
     PaniniProjection paniniProjection;
 
-    [SerializeField] AnimationCurve vignetteIntensityCurve;
+    [SerializeField] AnimationCurve vignetteIntensityCurveRight;
+    [SerializeField] AnimationCurve vignetteIntensityCurveLeft;
+    [SerializeField] AnimationCurve vignetteIntensityCurveBoth;
     [SerializeField] AnimationCurve paniniDistanCurve;
-    [SerializeField] float animationStartLeftDuration;
+    [SerializeField] float animatioRightDuration;
+    [SerializeField] float animationLeftDuration;
+    [SerializeField] float animationBothDuration;
 
     private void OnEnable()
     {
@@ -21,32 +25,72 @@ public class PostProcessManager : MonoBehaviour
     }
     void Start()
     {
-        StartCoroutine(AnimationTimeStartLeft());
+      
+      //  StartCoroutine(AnimationTimeLeft());
+      //  StartCoroutine(AnimationTimeRight());
+      //StartCoroutine(AnimationTimeBoth());
     }
 
     void CacheObjects ()
     {
-      //  volume.profile.TryGet<Bloom>(out bloom);
         volume.profile.TryGet<PaniniProjection>(out paniniProjection);
         volume.profile.TryGet<Vignette>(out vignette);
     }
 
-    IEnumerator AnimationTimeStartLeft()
+    IEnumerator AnimationTimeRight()
     {
         float time = 0f;
-        float duration = animationStartLeftDuration;
+        float duration = animatioRightDuration;
+        Vector2 newCenter = new Vector2(0.2f, 0.5f);
+        vignette.center.Override(newCenter);
         while (time<duration)
         {
             paniniProjection.distance.value = paniniDistanCurve.Evaluate(time);
-            vignette.intensity.value = vignetteIntensityCurve.Evaluate(time);
+            vignette.intensity.value = vignetteIntensityCurveRight.Evaluate(time);
             time += Time.deltaTime; 
             yield return null;
         }
         paniniProjection.distance.value = paniniDistanCurve.keys[paniniDistanCurve.length - 1].value;
-        vignette.intensity.value = vignetteIntensityCurve.keys[vignetteIntensityCurve.length - 1].value;
+        vignette.intensity.value = vignetteIntensityCurveRight.keys[vignetteIntensityCurveRight.length - 1].value;
 
     }
-    
+
+    IEnumerator AnimationTimeLeft()
+    {
+        float time = 0f;
+        float duration = animationLeftDuration;
+        Vector2 newCenter = new Vector2(0.8f, 0.5f);
+        vignette.center.Override(newCenter);
+        while (time < duration)
+        {
+            paniniProjection.distance.value = paniniDistanCurve.Evaluate(time);
+            vignette.intensity.value = vignetteIntensityCurveLeft.Evaluate(time);
+            time += Time.deltaTime;
+            yield return null;
+        }
+        paniniProjection.distance.value = paniniDistanCurve.keys[paniniDistanCurve.length - 1].value;
+        vignette.intensity.value = vignetteIntensityCurveLeft.keys[vignetteIntensityCurveLeft.length - 1].value;
+
+    }
+
+    IEnumerator AnimationTimeBoth()
+    {
+        float time = 0f;
+        float duration = animationBothDuration;
+        Vector2 newCenter = new Vector2(0.5f, 0.5f);
+        vignette.center.Override(newCenter);
+        while (time < duration)
+        {
+            paniniProjection.distance.value = paniniDistanCurve.Evaluate(time);
+            vignette.intensity.value = vignetteIntensityCurveBoth.Evaluate(time);
+            time += Time.deltaTime;
+            yield return null;
+        }
+        paniniProjection.distance.value = paniniDistanCurve.keys[paniniDistanCurve.length - 1].value;
+        vignette.intensity.value = vignetteIntensityCurveBoth.keys[vignetteIntensityCurveBoth.length - 1].value;
+
+    }
+
     void Update()
     {
         
