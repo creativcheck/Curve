@@ -6,12 +6,16 @@ using Unity.Mathematics;
 
 public class Player : MonoBehaviour
 {
-    [SerializeField] Transform rightPoint, leftPoint;
-    [SerializeField] float fallSpeed = 0.02f;
+    [SerializeField] Transform rightPoint, leftPoint, rightBone, leftBone;
+    [SerializeField] float mainFallSpeed = 0.02f, fallSpeedIncreaser, mouseSpeedToFall, mainFallPosition, pushDistance;
     [SerializeField] SplineContainer splineContainer;
     [SerializeField] Transform debug;
+    [SerializeField] float distanceBetweenBoneAndPoint;
 
     SplinePath playerTrack;
+    PlayerActions playerActions;
+    PlayerInput playerInput;
+    Hand leftHand, rightHand;
 
     private Vector3 rightPointPos, leftPointPos;
     private Quaternion rightPointRot, leftPointRot;
@@ -29,6 +33,13 @@ public class Player : MonoBehaviour
                 new SplineSlice<Spline>(splineContainer.Splines[0], new SplineRange(0, 6),
                     splineContainer.transform.localToWorldMatrix)
         });
+
+        leftHand = new Hand(leftPoint, transform, leftBone, distanceBetweenBoneAndPoint, playerTrack);
+        rightHand = new Hand(rightPoint, transform, rightBone, distanceBetweenBoneAndPoint, playerTrack);
+
+        playerInput = new PlayerInput();
+        playerActions = new PlayerActions(playerInput, playerTrack, mainFallSpeed, transform, debug, 
+            mouseSpeedToFall, fallSpeedIncreaser, mainFallPosition, pushDistance, leftHand, rightHand);
     }
 
 
@@ -37,23 +48,17 @@ public class Player : MonoBehaviour
         if(firstUpdate)
             UpdateIKPoints();
 
-        UpdateFalling();
+        playerActions.Update();
     }
 
-    private void UpdateFalling()
+    private void OnDestroy()
     {
-        playerTrack.Evaluate(math.frac(fallSpeed * Time.time), out var pos, out var right, out var up);
-        //Vector3 forward = Vector3.Cross(right, up);
-        transform.position = pos;
-        pos += up;
-
-        debug.position = pos;
-        transform.LookAt(debug);
+        playerActions.Expose();
     }
 
     private void UpdateIKPoints()
     {
-        rightPoint.rotation = Quaternion.Euler(-7, -75, -55);
+        rightPoint.rotation = Quaternion.Euler(-7, -75, -55); // руки в нужном положении на старте
         leftPoint.rotation = Quaternion.Euler(-7, 75, 55);
         firstUpdate = false;
     }

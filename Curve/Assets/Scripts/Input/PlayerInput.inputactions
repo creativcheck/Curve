@@ -1,0 +1,94 @@
+{
+    "name": "PlayerInput",
+    "maps": [
+        {
+            "name": "Map",
+            "id": "04f8dcfc-a89f-4e61-89c2-609df7d9c552",
+            "actions": [
+                {
+                    "name": "PutLeftHand",
+                    "type": "Button",
+                    "id": "061b1ae0-e20e-4381-a239-f8c8466133e9",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Push",
+                    "type": "Button",
+                    "id": "59f48de2-117c-4f4c-a6e5-78a641316a1a",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "PutRightHand",
+                    "type": "Button",
+                    "id": "ad6241c3-1834-47bd-820b-1116fd52f0d2",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "HeadRotating",
+                    "type": "PassThrough",
+                    "id": "fda414c5-4068-4b51-9c07-4069baf0b13a",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "ed8dab6d-b845-4a5d-9f8a-f27748328a49",
+                    "path": "<Mouse>/leftButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "PutLeftHand",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "d357bf55-e2af-4cc5-ba4d-80092d0f00f4",
+                    "path": "<Keyboard>/space",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Push",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "20b2f2d9-92f5-4723-95cd-8110e26a697a",
+                    "path": "<Mouse>/rightButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "PutRightHand",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "719ec454-e5fc-4b4f-88bc-1c2d6e9b1e04",
+                    "path": "<Mouse>/delta",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "HeadRotating",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        }
+    ],
+    "controlSchemes": []
+}
