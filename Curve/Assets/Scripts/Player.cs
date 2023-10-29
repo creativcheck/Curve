@@ -11,6 +11,15 @@ public class Player : MonoBehaviour
     [SerializeField] SplineContainer splineContainer;
     [SerializeField] Transform debug;
     [SerializeField] float distanceBetweenBoneAndPoint;
+    [SerializeField] PostProcessManager postProcessManager;
+    [Header("Настройки критической высоты подъема или съезда по стене")]
+    [SerializeField][Range(0, 0.5f)] float maxHeight;
+    [SerializeField][Range(0.5f, 1)] float minHeight;
+    [Header("Настройки усталости")]
+    [SerializeField] float fatigueRaseByPush;
+    [SerializeField] float fatigueRaseByTime;
+    [SerializeField] float relaxFatigueValue;
+    [SerializeField] float fatigueLimit;
 
     SplinePath playerTrack;
     PlayerActions playerActions;
@@ -38,8 +47,9 @@ public class Player : MonoBehaviour
         rightHand = new Hand(rightPoint, transform, rightBone, distanceBetweenBoneAndPoint, playerTrack);
 
         playerInput = new PlayerInput();
-        playerActions = new PlayerActions(playerInput, playerTrack, mainFallSpeed, transform, debug, 
-            mouseSpeedToFall, fallSpeedIncreaser, mainFallPosition, pushDistance, leftHand, rightHand);
+        playerActions = new PlayerActions(postProcessManager, playerInput, playerTrack, mainFallSpeed, transform, debug, 
+            mouseSpeedToFall, fallSpeedIncreaser, mainFallPosition, pushDistance, maxHeight, minHeight, leftHand, rightHand,
+            fatigueRaseByPush, fatigueRaseByTime, fatigueLimit, relaxFatigueValue);
     }
 
 

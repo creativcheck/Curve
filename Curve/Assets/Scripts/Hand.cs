@@ -11,6 +11,7 @@ public class Hand
 
     SplinePath playerTrack;
     Vector3 pointPosition;
+    float _trackPosition;
 
     public Hand(Transform point, Transform player, Transform bone, float distance, SplinePath track)
     {
@@ -26,13 +27,14 @@ public class Hand
 
     public void Update(float trackPosition)
     {
-        if(point.parent == null)
+        /*if(point.parent == null)
         {
             playerTrack.Evaluate(math.frac(trackPosition - 0.1f), out var pos, out var fwd, out var up);
             pointPosition = pos;
             pointPosition.x += offsetX;
             point.position = pointPosition;
-        }
+        }*/
+        _trackPosition = trackPosition;
     }
 
     public bool GetOpportunityToPush()
@@ -55,5 +57,12 @@ public class Hand
     public void ToPlayer()
     {
         point.parent = player;
+        //if (Vector3.Distance(bone.position, point.position) > distance)
+        //{
+            playerTrack.Evaluate(math.frac(Mathf.Clamp(_trackPosition - 0.1f, 0, 1)), out var pos, out var fwd, out var up);
+            pointPosition = pos;
+            pointPosition.x += offsetX;
+            point.position = pointPosition;
+        //}
     }
 }

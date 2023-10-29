@@ -19,6 +19,9 @@ public class PostProcessManager : MonoBehaviour
     [SerializeField] float animationLeftDuration;
     [SerializeField] float animationBothDuration;
 
+    private float vignetteIntensityMultiplier;
+    private float paniniIntensityMultiplier;
+
     private void OnEnable()
     {
         CacheObjects();
@@ -28,7 +31,7 @@ public class PostProcessManager : MonoBehaviour
       
       //  StartCoroutine(AnimationTimeLeft());
       //  StartCoroutine(AnimationTimeRight());
-      //StartCoroutine(AnimationTimeBoth());
+      StartCoroutine(AnimationTimeBoth());
     }
 
     void CacheObjects ()
@@ -77,22 +80,23 @@ public class PostProcessManager : MonoBehaviour
     {
         float time = 0f;
         float duration = animationBothDuration;
-        Vector2 newCenter = new Vector2(0.5f, 0.5f);
-        vignette.center.Override(newCenter);
+        //Vector2 newCenter = new Vector2(0.5f, 0.5f);
+        //vignette.center.Override(newCenter);
         while (time < duration)
         {
-            paniniProjection.distance.value = paniniDistanCurve.Evaluate(time);
-            vignette.intensity.value = vignetteIntensityCurveBoth.Evaluate(time);
+            paniniProjection.distance.value = paniniDistanCurve.Evaluate(time) * paniniIntensityMultiplier;
+            vignette.intensity.value = vignetteIntensityCurveBoth.Evaluate(time) * vignetteIntensityMultiplier;
             time += Time.deltaTime;
             yield return null;
         }
-        paniniProjection.distance.value = paniniDistanCurve.keys[paniniDistanCurve.length - 1].value;
-        vignette.intensity.value = vignetteIntensityCurveBoth.keys[vignetteIntensityCurveBoth.length - 1].value;
+        paniniProjection.distance.value = paniniDistanCurve.keys[paniniDistanCurve.length - 1].value * paniniIntensityMultiplier;
+        vignette.intensity.value = vignetteIntensityCurveBoth.keys[vignetteIntensityCurveBoth.length - 1].value * vignetteIntensityMultiplier;
 
     }
 
-    void Update()
+    public void SetMultiplier(float value)
     {
-        
+        vignetteIntensityMultiplier = value;
+        paniniIntensityMultiplier = value;
     }
 }

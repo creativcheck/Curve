@@ -14,14 +14,18 @@ public class PlayerActions
     float mainFallSpeed, fallIncreaser, mouseSpeedToFall, pushDistance;
     Transform playerTransform, debug;
     Hand leftHand, rightHand;
+    PostProcessManager postProcessManager;
 
-    float currentFallSpeed, currentFallPosition;
+    float currentFallSpeed, currentFallPosition, minHeight, maxHeight;
+    float currentFatigueLeft, currentFatigueRight, fatigueByPush, fatigueByTime, fatigueLimit, fatigueRelax;
     bool deathFalling, leftHandLock, rightHandLock;
 
-    public PlayerActions(PlayerInput input, SplinePath path, float fSpeed, Transform player, Transform debug, 
-        float maxMouseSpeed, float increaser, float fallPosition, float pushDistance,
-        Hand leftHand, Hand rightHand)
+    public PlayerActions(PostProcessManager posProcessMng, PlayerInput input, SplinePath path, float fSpeed, Transform player, Transform debug, 
+        float maxMouseSpeed, float increaser, float fallPosition, float pushDistance, float maxHeight, float minHeight,
+        Hand leftHand, Hand rightHand,
+        float fatiguePush, float fatigueTime, float limit, float relax)
     {
+        this.postProcessManager = posProcessMng;
         playerInput = input;
         playerTrack = path;
         mainFallSpeed = fSpeed;
@@ -33,7 +37,15 @@ public class PlayerActions
         this.leftHand = leftHand;
         this.rightHand = rightHand;
         this.pushDistance = pushDistance;
+        this.maxHeight = maxHeight;
+        this.minHeight = minHeight;
+        fatigueByPush = fatiguePush;
+        fatigueByTime = fatigueTime;
+        fatigueLimit = limit;
+        fatigueRelax = relax;
 
+        //leftHand.ToPlayer();
+        //rightHand.ToPlayer();
 
         Bind();
     }
@@ -65,9 +77,9 @@ public class PlayerActions
     void PushHand(InputAction.CallbackContext context)
     {
         if (leftHandLock && leftHand.GetOpportunityToPush())
-            currentFallPosition -= pushDistance;
+            Pushing();
         else if(rightHandLock && rightHand.GetOpportunityToPush())
-            currentFallPosition -= pushDistance;
+            Pushing();
     }
 
     void PutLeftHand(InputAction.CallbackContext context)
@@ -109,25 +121,88 @@ public class PlayerActions
         float rot = context.ReadValue<Vector2>().x + context.ReadValue<Vector2>().y;
         if (rot > mouseSpeedToFall)
         {
-            deathFalling = true;
-            leftHand.ToPlayer();
-            rightHand.ToPlayer();
+            StartFalling();
         }
-        else
+    }
+
+    void Pushing()
+    {
+        currentFallPosition -= pushDistance;
+        if (leftHandLock)
         {
-            //currentFallSpeed = 0;
+            currentFatigueLeft += fatigueByPush;
         }
+        if (rightHandLock)
+        {
+            currentFatigueRight += fatigueByPush;
+        }
+    }
+
+    void StartFalling()
+    {
+        deathFalling = true;
+        leftHand.ToPlayer();
+        rightHand.ToPlayer();
+        Expose();
     }
 
     public void Update()
     {
         UpdateFalling();
+        UpdateFatigue();
         leftHand.Update(currentFallPosition);
         rightHand.Update(currentFallPosition);
     }
 
+    void UpdateFatigue()
+    {
+        if(leftHandLock)
+        {
+            currentFatigueLeft += Time.deltaTime * fatigueByTime;
+
+            if(currentFatigueLeft > fatigueLimit)
+            {
+                StartFalling();
+            }
+        }
+        else if (currentFatigueLeft > 0)
+        {
+            currentFatigueLeft -= Time.deltaTime * fatigueRelax;
+        }
+
+        if (rightHandLock)
+        {
+            currentFatigueRight += Time.deltaTime * fatigueByTime;
+
+            if (currentFatigueRight > fatigueLimit)
+            {
+                StartFalling();
+            }
+        }
+        else if (currentFatigueRight > 0)
+        {
+            currentFatigueRight -= Time.deltaTime * fatigueRelax;
+        }
+
+        // обновляем эффекты в зависимости от усталости
+        if (currentFatigueLeft > currentFatigueRight)
+        {
+            postProcessManager.SetMultiplier(currentFatigueLeft / fatigueLimit);
+        }
+        else
+        {
+            postProcessManager.SetMultiplier(currentFatigueRight / fatigueLimit);
+        }
+    }
+
     private void UpdateFalling()
     {
+        if(currentFallPosition < maxHeight /*|| currentFallPosition > minHeight*/)
+        {
+            if(!deathFalling)
+                StartFalling();
+        }
+
         if(deathFalling)
         {
             currentFallPosition += mainFallSpeed * Time.deltaTime;
@@ -142,10 +217,9 @@ public class PlayerActions
         debug.position = pos;
         playerTransform.LookAt(debug);
 
-        if(currentFallPosition > 0.999)
+        if(currentFallPosition > 0.98)
         {
             deathFalling = false;
-            currentFallPosition = 0.9991f;
         }
     }
 }
