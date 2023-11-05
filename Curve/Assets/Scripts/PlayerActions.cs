@@ -6,6 +6,7 @@ using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Splines;
+using Random = UnityEngine.Random;
 
 public class PlayerActions
 {
@@ -18,12 +19,23 @@ public class PlayerActions
 
     float currentFallSpeed, currentFallPosition, minHeight, maxHeight;
     float currentFatigueLeft, currentFatigueRight, fatigueByPush, fatigueByTime, fatigueLimit, fatigueRelax;
-    bool deathFalling, leftHandLock, rightHandLock;
+    bool deathFalling, leftHandLock, rightHandLock, firstSetup;
+    GameObject deathScreen;
+    float timerScream;
+
+    AudioSource leftPushSound;
+    AudioSource rightPushSound;
+    AudioClip[] pushAudios;
+    AudioSource heatbeatSound, earRingSound;
+    AudioSource screamSound;
+    AudioClip[] screamAudios;
 
     public PlayerActions(PostProcessManager posProcessMng, PlayerInput input, SplinePath path, float fSpeed, Transform player, Transform debug, 
         float maxMouseSpeed, float increaser, float fallPosition, float pushDistance, float maxHeight, float minHeight,
         Hand leftHand, Hand rightHand,
-        float fatiguePush, float fatigueTime, float limit, float relax)
+        float fatiguePush, float fatigueTime, float limit, float relax,
+        AudioSource earRingSound, AudioSource heatbeatSound, AudioSource leftPush, AudioSource rightPush, AudioClip[] pushAudios, AudioSource screamSound, AudioClip[] screamAudios,
+        GameObject deathScreen)
     {
         this.postProcessManager = posProcessMng;
         playerInput = input;
@@ -43,9 +55,16 @@ public class PlayerActions
         fatigueByTime = fatigueTime;
         fatigueLimit = limit;
         fatigueRelax = relax;
+        this.earRingSound = earRingSound;
+        this.heatbeatSound = heatbeatSound;
+        this.rightPushSound = rightPush;
+        this.leftPushSound = leftPush;
+        this.pushAudios = pushAudios;
+        this.screamSound = screamSound;
+        this.screamAudios = screamAudios;
+        this.deathScreen = deathScreen;
 
-        //leftHand.ToPlayer();
-        //rightHand.ToPlayer();
+        timerScream = Random.Range(6, 14);
 
         Bind();
     }
@@ -131,10 +150,14 @@ public class PlayerActions
         if (leftHandLock)
         {
             currentFatigueLeft += fatigueByPush;
+            leftPushSound.clip = pushAudios[Random.Range(0, pushAudios.Length)];
+            leftPushSound.Play();
         }
         if (rightHandLock)
         {
             currentFatigueRight += fatigueByPush;
+            rightPushSound.clip = pushAudios[Random.Range(0, pushAudios.Length)];
+            rightPushSound.Play();
         }
     }
 
@@ -143,11 +166,25 @@ public class PlayerActions
         deathFalling = true;
         leftHand.ToPlayer();
         rightHand.ToPlayer();
+        deathScreen.SetActive(true);
+        screamSound.clip = screamAudios[Random.Range(0, screamAudios.Length)];
+        screamSound.Play();
         Expose();
     }
 
     public void Update()
     {
+        if(timerScream > 0)
+        {
+            timerScream -= Time.deltaTime;
+        }
+        else if (!deathFalling)
+        {
+            screamSound.clip = screamAudios[Random.Range(0, screamAudios.Length)];
+            screamSound.Play();
+            timerScream = Random.Range(7, 15);
+        }
+
         UpdateFalling();
         UpdateFatigue();
         leftHand.Update(currentFallPosition);
@@ -184,14 +221,20 @@ public class PlayerActions
             currentFatigueRight -= Time.deltaTime * fatigueRelax;
         }
 
+
         // обновляем эффекты в зависимости от усталости
         if (currentFatigueLeft > currentFatigueRight)
         {
             postProcessManager.SetMultiplier(currentFatigueLeft / fatigueLimit);
+
+            earRingSound.volume = currentFatigueLeft / fatigueLimit;
+            heatbeatSound.volume = currentFatigueLeft / fatigueLimit;
         }
         else
         {
             postProcessManager.SetMultiplier(currentFatigueRight / fatigueLimit);
+            earRingSound.volume = currentFatigueRight / fatigueLimit;
+            heatbeatSound.volume = currentFatigueRight / fatigueLimit;
         }
     }
 
@@ -220,6 +263,15 @@ public class PlayerActions
         if(currentFallPosition > 0.98)
         {
             deathFalling = false;
+        }
+
+        if(!firstSetup)
+        {
+            leftHand.Update(currentFallPosition);
+            rightHand.Update(currentFallPosition);
+            leftHand.ToPlayer();
+            rightHand.ToPlayer();
+            firstSetup = true;
         }
     }
 }

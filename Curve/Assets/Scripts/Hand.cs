@@ -7,19 +7,20 @@ using UnityEngine.Splines;
 public class Hand
 {
     private Transform point, player, bone;
-    private float distance, offsetX;
+    private float distancePointBone, offsetX, distanceToPlayer;
 
     SplinePath playerTrack;
     Vector3 pointPosition;
     float _trackPosition;
 
-    public Hand(Transform point, Transform player, Transform bone, float distance, SplinePath track)
+    public Hand(Transform point, Transform player, Transform bone, float distance, SplinePath track, float distanceToPlayer)
     {
         this.point = point;
         this.player = player;
         this.bone = bone;
-        this.distance = distance;
+        this.distancePointBone = distance;
         playerTrack = track;
+        this.distanceToPlayer = distanceToPlayer;
 
         offsetX = point.position.x - player.position.x;
     }
@@ -40,7 +41,7 @@ public class Hand
     public bool GetOpportunityToPush()
     {
         bool what = false;
-        if (Vector3.Distance(bone.position, point.position) < distance)
+        if (Vector3.Distance(bone.position, point.position) < distancePointBone)
         {
             what = true;
         }
@@ -59,7 +60,7 @@ public class Hand
         point.parent = player;
         //if (Vector3.Distance(bone.position, point.position) > distance)
         //{
-            playerTrack.Evaluate(math.frac(Mathf.Clamp(_trackPosition - 0.1f, 0, 1)), out var pos, out var fwd, out var up);
+            playerTrack.Evaluate(math.frac(Mathf.Clamp(_trackPosition - distanceToPlayer, 0, 1)), out var pos, out var fwd, out var up);
             pointPosition = pos;
             pointPosition.x += offsetX;
             point.position = pointPosition;
